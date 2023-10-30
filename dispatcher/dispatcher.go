@@ -30,3 +30,7 @@ var defaultDispatcher = Dispatcher{
 		bufferSize:  1,
 	},
 }
+
+func Start() {
+
+}
