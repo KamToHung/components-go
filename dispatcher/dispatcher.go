@@ -31,6 +31,13 @@ var defaultDispatcher = Dispatcher{
 	},
 }
 
-func Start() {
-
+// New 创建调度器
+// @param opts 配置选项
+// @return *Dispatcher 调度器
+func New(opts ...Option) *Dispatcher {
+	d := defaultDispatcher
+	for _, opt := range opts {
+		opt(&d)
+	}
+	return &d
 }
