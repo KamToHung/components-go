@@ -71,6 +71,8 @@ func (d *Dispatcher) Start(ctx context.Context, configs ...any) {
 	producerProcess(d, ctx, configs)
 }
 
+// consumerProcess 消费者处理
+// @param consumerConfig 消费者配置
 func consumerProcess(consumerConfig *ConsumerConfig) {
 	if consumerConfig.consumer == nil {
 		panic("consumerConfig is not set")
@@ -89,10 +91,12 @@ func consumerProcess(consumerConfig *ConsumerConfig) {
 		// create
 		ch := make(chan Message, bufferSize)
 		channels = append(channels, ch)
+		// consumer
+		consumer := consumerConfig.consumer()
 		go func() {
 			defer waitGroup.Done()
 			for message := range ch {
-				consumerConfig.consumer().Consume(message)
+				consumer.Consume(message)
 				// count message
 				atomic.AddUint64(&consumerConfig.messageCount, 1)
 			}
@@ -100,11 +104,11 @@ func consumerProcess(consumerConfig *ConsumerConfig) {
 	}
 }
 
-func producerProcess(d *Dispatcher, ctx context.Context, configs ...any) {
-	if d.producerConfig.producer == nil {
+func producerProcess(producerConfig *ProducerConfig, ctx context.Context, configs ...any) {
+	if producerConfig.producer == nil {
 		panic("producer is not set")
 	}
 	// producer config
-	concurrency := d.producerConfig.concurrency
-	bufferSize := d.producerConfig.bufferSize
+	concurrency := producerConfig.concurrency
+	bufferSize := producerConfig.bufferSize
 }
