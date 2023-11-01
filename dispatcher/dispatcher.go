@@ -65,6 +65,6 @@ func (d *Dispatcher) GetConsumeMessageCount() uint64 {
 // @receiver d 调度器
 // @param ctx 上下文
 // @param configs 配置信息
-func (d *Dispatcher) Start(ctx context.Context, configs ...interface{}) {
+func (d *Dispatcher) Start(ctx context.Context, configs ...any) {
 	// TODO
 }
