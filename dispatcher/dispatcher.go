@@ -2,6 +2,7 @@ package dispatcher
 
 import (
 	"context"
+	"sync"
 	"sync/atomic"
 )
 
@@ -66,17 +67,37 @@ func (d *Dispatcher) GetConsumeMessageCount() uint64 {
 // @param ctx 上下文
 // @param configs 配置信息
 func (d *Dispatcher) Start(ctx context.Context, configs ...any) {
-	consumerProcess(d)
+	consumerProcess(&d.consumerConfig)
 	producerProcess(d, ctx, configs)
 }
 
-func consumerProcess(d *Dispatcher) {
-	if d.consumerConfig.consumer == nil {
-		panic("consumer is not set")
+func consumerProcess(consumerConfig *ConsumerConfig) {
+	if consumerConfig.consumer == nil {
+		panic("consumerConfig is not set")
 	}
-	// consumer config
-	concurrency := d.consumerConfig.concurrency
-	bufferSize := d.consumerConfig.bufferSize
+	// consumerConfig config
+	concurrency := consumerConfig.concurrency
+	bufferSize := consumerConfig.bufferSize
+
+	// add concurrency consumerConfig
+	var waitGroup sync.WaitGroup
+	waitGroup.Add(concurrency)
+
+	// channels
+	channels := make([]chan Message, bufferSize)
+	for i := 0; i < concurrency; i++ {
+		// create
+		ch := make(chan Message, bufferSize)
+		channels = append(channels, ch)
+		go func() {
+			defer waitGroup.Done()
+			for message := range ch {
+				consumerConfig.consumer().Consume(message)
+				// count message
+				atomic.AddUint64(&consumerConfig.messageCount, 1)
+			}
+		}()
+	}
 }
 
 func producerProcess(d *Dispatcher, ctx context.Context, configs ...any) {
