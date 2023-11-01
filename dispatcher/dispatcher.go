@@ -2,6 +2,7 @@ package dispatcher
 
 import (
 	"context"
+	"hash/fnv"
 	"math/rand"
 	"sync"
 	"sync/atomic"
@@ -142,6 +143,7 @@ func producerProcess(producerConfig *ProducerConfig, ctx context.Context, consum
 					index := 0
 					if open {
 						// 根据key发送到同一个consumer
+						index = calculateIndex(key, concurrency)
 					} else {
 						// 随机发送到一个consumer
 						index = rand.Intn(concurrency)
@@ -155,4 +157,18 @@ func producerProcess(producerConfig *ProducerConfig, ctx context.Context, consum
 		}()
 	}
 	waitGroup.Wait()
+}
+
+// calculateIndex 计算索引
+// @param key 键值
+// @param size 大小
+// @return int 索引
+func calculateIndex(key string, size int) int {
+	hash := fnv.New32a()
+	_, err := hash.Write([]byte(key))
+	if err != nil {
+		panic(err)
+	}
+	hashValue := hash.Sum32()
+	return int(hashValue) % size
 }
