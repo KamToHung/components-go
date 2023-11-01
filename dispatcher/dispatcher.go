@@ -1,5 +1,10 @@
 package dispatcher
 
+import (
+	"context"
+	"sync/atomic"
+)
+
 type Dispatcher struct {
 	producerConfig ProducerConfig
 	consumerConfig ConsumerConfig
@@ -40,4 +45,26 @@ func New(opts ...Option) *Dispatcher {
 		opt(&d)
 	}
 	return &d
+}
+
+// GetSendMessageCount 获取发送消息数量
+// @receiver d 调度器
+// @return uint64 消息数量
+func (d *Dispatcher) GetSendMessageCount() uint64 {
+	return atomic.LoadUint64(&d.producerConfig.messageCount)
+}
+
+// GetConsumeMessageCount 获取消费消息数量
+// @receiver d 调度器
+// @return uint64 消息数量
+func (d *Dispatcher) GetConsumeMessageCount() uint64 {
+	return atomic.LoadUint64(&d.consumerConfig.messageCount)
+}
+
+// Start  启动调度器
+// @receiver d 调度器
+// @param ctx 上下文
+// @param configs 配置信息
+func (d *Dispatcher) Start(ctx context.Context, configs ...interface{}) {
+	// TODO
 }
