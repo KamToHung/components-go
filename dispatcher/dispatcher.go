@@ -2,8 +2,10 @@ package dispatcher
 
 import (
 	"context"
+	"math/rand"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 type Dispatcher struct {
@@ -66,14 +68,16 @@ func (d *Dispatcher) GetConsumeMessageCount() uint64 {
 // @receiver d 调度器
 // @param ctx 上下文
 // @param configs 配置信息
-func (d *Dispatcher) Start(ctx context.Context, configs ...any) {
-	consumerProcess(&d.consumerConfig)
-	producerProcess(d, ctx, configs)
+func (d *Dispatcher) Start(ctx context.Context, configs ...interface{}) {
+	// channels
+	consumerChannels := make([]chan Message, d.consumerConfig.bufferSize)
+	consumerProcess(&d.consumerConfig, consumerChannels)
+	producerProcess(&d.producerConfig, ctx, consumerChannels, configs)
 }
 
 // consumerProcess 消费者处理
 // @param consumerConfig 消费者配置
-func consumerProcess(consumerConfig *ConsumerConfig) {
+func consumerProcess(consumerConfig *ConsumerConfig, channels []chan Message) {
 	if consumerConfig.consumer == nil {
 		panic("consumerConfig is not set")
 	}
@@ -81,12 +85,9 @@ func consumerProcess(consumerConfig *ConsumerConfig) {
 	concurrency := consumerConfig.concurrency
 	bufferSize := consumerConfig.bufferSize
 
-	// add concurrency consumerConfig
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(concurrency)
 
-	// channels
-	channels := make([]chan Message, bufferSize)
 	for i := 0; i < concurrency; i++ {
 		// create
 		ch := make(chan Message, bufferSize)
@@ -102,13 +103,56 @@ func consumerProcess(consumerConfig *ConsumerConfig) {
 			}
 		}()
 	}
+	waitGroup.Wait()
 }
 
-func producerProcess(producerConfig *ProducerConfig, ctx context.Context, configs ...any) {
+func producerProcess(producerConfig *ProducerConfig, ctx context.Context, consumerChannels []chan Message, configs ...interface{}) {
 	if producerConfig.producer == nil {
 		panic("producer is not set")
 	}
 	// producer config
 	concurrency := producerConfig.concurrency
 	bufferSize := producerConfig.bufferSize
+
+	// producer channels
+	configChannels := make(chan interface{}, concurrency)
+	go func() {
+		for _, config := range configs {
+			configChannels <- config
+		}
+		close(configChannels)
+	}()
+
+	var waitGroup sync.WaitGroup
+	waitGroup.Add(concurrency)
+
+	rand.Seed(time.Now().Unix())
+	for i := 0; i < concurrency; i++ {
+		go func() {
+			defer waitGroup.Done()
+			for config := range configChannels {
+				ch := make(chan Message, bufferSize)
+				go func() {
+					producerConfig.producer().Start(ctx, config, ch)
+					close(ch)
+				}()
+
+				for message := range ch {
+					open, key := message.Route()
+					index := 0
+					if open {
+						// 根据key发送到同一个consumer
+					} else {
+						// 随机发送到一个consumer
+						index = rand.Intn(concurrency)
+					}
+					// producer count
+					atomic.AddUint64(&producerConfig.messageCount, 1)
+					// send message
+					consumerChannels[index] <- message
+				}
+			}
+		}()
+	}
+	waitGroup.Wait()
 }

@@ -8,5 +8,5 @@ type Producer interface {
 	// @param ctx 上下文
 	// @param config 配置信息
 	// @param ch chan
-	Start(ctx context.Context, config any, ch chan<- Message)
+	Start(ctx context.Context, config interface{}, ch chan<- Message)
 }
