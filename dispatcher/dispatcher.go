@@ -66,5 +66,24 @@ func (d *Dispatcher) GetConsumeMessageCount() uint64 {
 // @param ctx 上下文
 // @param configs 配置信息
 func (d *Dispatcher) Start(ctx context.Context, configs ...any) {
-	// TODO
+	consumerProcess(d)
+	producerProcess(d, ctx, configs)
+}
+
+func consumerProcess(d *Dispatcher) {
+	if d.consumerConfig.consumer == nil {
+		panic("consumer is not set")
+	}
+	// consumer config
+	concurrency := d.consumerConfig.concurrency
+	bufferSize := d.consumerConfig.bufferSize
+}
+
+func producerProcess(d *Dispatcher, ctx context.Context, configs ...any) {
+	if d.producerConfig.producer == nil {
+		panic("producer is not set")
+	}
+	// producer config
+	concurrency := d.producerConfig.concurrency
+	bufferSize := d.producerConfig.bufferSize
 }
