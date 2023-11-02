@@ -107,6 +107,11 @@ func consumerProcess(consumerConfig *ConsumerConfig, channels []chan Message) {
 	waitGroup.Wait()
 }
 
+// producerProcess  生产者处理
+// @param producerConfig 生产者配置
+// @param ctx 上下文
+// @param consumerChannels 消费者通道
+// @param configs 配置信息
 func producerProcess(producerConfig *ProducerConfig, ctx context.Context, consumerChannels []chan Message, configs ...interface{}) {
 	if producerConfig.producer == nil {
 		panic("producer is not set")
