@@ -9,17 +9,25 @@ func TestOptConsumerBufferSize(t *testing.T) {
 	type args struct {
 		s int
 	}
+
+	bufferSize := 512
 	tests := []struct {
 		name string
 		args args
-		want Option
+		want int
 	}{
-		// TODO: Add test cases.
+		{
+			name: "consumer buffer size",
+			args: args{
+				s: bufferSize,
+			},
+			want: bufferSize,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := OptConsumerBufferSize(tt.args.s); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("OptConsumerBufferSize() = %v, want %v", got, tt.want)
+			if got := New(OptConsumerBufferSize(tt.args.s)).consumerConfig.bufferSize; !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("OptConsumerBufferSize() = %bufferSize, want %bufferSize", got, tt.want)
 			}
 		})
 	}
