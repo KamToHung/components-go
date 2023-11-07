@@ -77,23 +77,11 @@ func TestOptConsumerConcurrency(t *testing.T) {
 }
 
 func TestOptConsumerConfig(t *testing.T) {
-	type args struct {
-		option ConsumerOption
-	}
-	tests := []struct {
-		name string
-		args args
-		want Option
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := OptConsumerConfig(tt.args.option); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("OptConsumerConfig() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	runner := &TestRunner{}
+	dispatcher := New(OptConsumerConfig(func() Consumer {
+		return runner
+	}))
+	assert.Equal(t, dispatcher.consumerConfig.consumer(), runner)
 }
 
 func TestOptProducerBufferSize(t *testing.T) {
