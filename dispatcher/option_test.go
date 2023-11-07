@@ -1,9 +1,24 @@
 package dispatcher
 
 import (
+	"context"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 )
+
+type TestRunner struct {
+}
+
+func (t TestRunner) Start(ctx context.Context, config interface{}, ch chan<- Message) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t TestRunner) Consume(message Message) {
+	//TODO implement me
+	panic("implement me")
+}
 
 func TestOptConsumerBufferSize(t *testing.T) {
 	type args struct {
@@ -82,61 +97,22 @@ func TestOptConsumerConfig(t *testing.T) {
 }
 
 func TestOptProducerBufferSize(t *testing.T) {
-	type args struct {
-		s int
-	}
-	tests := []struct {
-		name string
-		args args
-		want Option
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := OptProducerBufferSize(tt.args.s); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("OptProducerBufferSize() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	size := 1024
+	option := New(OptProducerBufferSize(size))
+	assert.Equal(t, option.producerConfig.bufferSize, size)
 }
 
 func TestOptProducerConcurrency(t *testing.T) {
-	type args struct {
-		c int
-	}
-	tests := []struct {
-		name string
-		args args
-		want Option
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := OptProducerConcurrency(tt.args.c); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("OptProducerConcurrency() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	concurrency := 10
+	option := New(OptProducerConcurrency(concurrency))
+	assert.Equal(t, option.producerConfig.concurrency, concurrency)
 }
 
 func TestOptProducerConfig(t *testing.T) {
-	type args struct {
-		option ProducerOption
-	}
-	tests := []struct {
-		name string
-		args args
-		want Option
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := OptProducerConfig(tt.args.option); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("OptProducerConfig() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	runner := &TestRunner{}
+	dispatcher := New(OptProducerConfig(func() Producer {
+		return runner
+	}))
+	assert.Equal(t, dispatcher.producerConfig.producer(), runner)
+
 }
