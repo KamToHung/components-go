@@ -6,6 +6,19 @@ import (
 	"testing"
 )
 
+type TestRunner struct {
+}
+
+func (t TestRunner) Start(ctx context.Context, config interface{}, ch chan<- Message) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t TestRunner) Consume(message Message) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func TestDispatcher_GetConsumeMessageCount(t *testing.T) {
 	type fields struct {
 		producerConfig ProducerConfig
