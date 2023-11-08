@@ -7,7 +7,8 @@ import (
 	"testing"
 )
 
-type TestRunner struct {
+type TestConfig struct {
+	name string
 }
 
 type TestMessage struct {
@@ -22,9 +23,17 @@ func (t *TestMessage) Route() (open bool, key string) {
 	return false, "{\"id\":123,\"name\": \"Terry\"}"
 }
 
+type TestRunner struct {
+}
+
 func (t TestRunner) Start(ctx context.Context, config interface{}, ch chan<- Message) {
-	//TODO implement me
-	panic("implement me")
+	testConfig, ok := config.(*TestConfig)
+	if !ok {
+		panic("invalid config")
+	}
+	for i := 0; i < 100; i++ {
+		ch <- &TestMessage{id: i, data: testConfig.name}
+	}
 }
 
 func (t TestRunner) Consume(message Message) {
