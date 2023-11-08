@@ -32,6 +32,15 @@ func (t TestRunner) Start(ctx context.Context, config interface{}, ch chan<- Mes
 		panic("invalid config")
 	}
 	for i := 0; i < 100; i++ {
+		ok = true
+		select {
+		case <-ctx.Done():
+			ok = false
+		default:
+		}
+		if !ok {
+			break
+		}
 		ch <- &TestMessage{id: i, data: testConfig.name}
 	}
 }
