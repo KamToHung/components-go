@@ -19,6 +19,18 @@ func (t TestRunner) Consume(message Message) {
 	panic("implement me")
 }
 
+type TestMessage struct {
+	id   int
+	data string
+}
+
+func (t *TestMessage) Route() (open bool, key string) {
+	if t.id > 10 {
+		return true, "{\"id\":123,\"name\": \"Ailey\"}"
+	}
+	return false, "{\"id\":123,\"name\": \"Terry\"}"
+}
+
 func TestDispatcher_GetConsumeMessageCount(t *testing.T) {
 	type fields struct {
 		producerConfig ProducerConfig
