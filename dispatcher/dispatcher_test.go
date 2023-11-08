@@ -2,21 +2,12 @@ package dispatcher
 
 import (
 	"context"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 type TestRunner struct {
-}
-
-func (t TestRunner) Start(ctx context.Context, config interface{}, ch chan<- Message) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (t TestRunner) Consume(message Message) {
-	//TODO implement me
-	panic("implement me")
 }
 
 type TestMessage struct {
@@ -29,6 +20,19 @@ func (t *TestMessage) Route() (open bool, key string) {
 		return true, "{\"id\":123,\"name\": \"Ailey\"}"
 	}
 	return false, "{\"id\":123,\"name\": \"Terry\"}"
+}
+
+func (t TestRunner) Start(ctx context.Context, config interface{}, ch chan<- Message) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t TestRunner) Consume(message Message) {
+	msg, ok := message.(*TestMessage)
+	if !ok {
+		panic("invalid message")
+	}
+	fmt.Printf("message id: %d msg: %s", msg.id, msg.data)
 }
 
 func TestDispatcher_GetConsumeMessageCount(t *testing.T) {
