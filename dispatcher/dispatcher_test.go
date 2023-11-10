@@ -9,7 +9,6 @@ type TestConfig struct {
 }
 
 func TestDispatcher_GetConsumeMessageCount(t *testing.T) {
-	// TODO: Add test cases.
 }
 
 func TestDispatcher_GetSendMessageCount(t *testing.T) {
