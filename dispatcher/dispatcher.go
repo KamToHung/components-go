@@ -72,13 +72,18 @@ func (d *Dispatcher) GetConsumeMessageCount() uint64 {
 func (d *Dispatcher) Start(ctx context.Context, configs ...interface{}) {
 	// channels
 	consumerChannels := make([]chan Message, d.consumerConfig.bufferSize)
-	consumerProcess(&d.consumerConfig, consumerChannels)
-	producerProcess(&d.producerConfig, ctx, consumerChannels, configs)
+	pWaitGroup := sync.WaitGroup{}
+	cWaitGroup := sync.WaitGroup{}
+	consumerProcess(&cWaitGroup, &d.consumerConfig, consumerChannels)
+	producerProcess(&cWaitGroup, &d.producerConfig, ctx, consumerChannels, configs)
+	pWaitGroup.Wait()
+	closeConsumerChannel(consumerChannels)
+	cWaitGroup.Wait()
 }
 
 // consumerProcess 消费者处理
 // @param consumerConfig 消费者配置
-func consumerProcess(consumerConfig *ConsumerConfig, channels []chan Message) {
+func consumerProcess(waitGroup *sync.WaitGroup, consumerConfig *ConsumerConfig, channels []chan Message) {
 	if consumerConfig.consumer == nil {
 		panic("consumerConfig is not set")
 	}
@@ -86,7 +91,7 @@ func consumerProcess(consumerConfig *ConsumerConfig, channels []chan Message) {
 	concurrency := consumerConfig.concurrency
 	bufferSize := consumerConfig.bufferSize
 
-	var waitGroup sync.WaitGroup
+	//var waitGroup sync.WaitGroup
 	waitGroup.Add(concurrency)
 
 	for i := 0; i < concurrency; i++ {
@@ -104,7 +109,7 @@ func consumerProcess(consumerConfig *ConsumerConfig, channels []chan Message) {
 			}
 		}()
 	}
-	waitGroup.Wait()
+	//waitGroup.Wait()
 }
 
 // producerProcess  生产者处理
@@ -112,7 +117,7 @@ func consumerProcess(consumerConfig *ConsumerConfig, channels []chan Message) {
 // @param ctx 上下文
 // @param consumerChannels 消费者通道
 // @param configs 配置信息
-func producerProcess(producerConfig *ProducerConfig, ctx context.Context, consumerChannels []chan Message, configs ...interface{}) {
+func producerProcess(waitGroup *sync.WaitGroup, producerConfig *ProducerConfig, ctx context.Context, consumerChannels []chan Message, configs ...interface{}) {
 	if producerConfig.producer == nil {
 		panic("producer is not set")
 	}
@@ -129,9 +134,8 @@ func producerProcess(producerConfig *ProducerConfig, ctx context.Context, consum
 		close(configChannels)
 	}()
 
-	var waitGroup sync.WaitGroup
+	//var waitGroup sync.WaitGroup
 	waitGroup.Add(concurrency)
-
 	rand.Seed(time.Now().Unix())
 	for i := 0; i < concurrency; i++ {
 		go func() {
@@ -161,7 +165,14 @@ func producerProcess(producerConfig *ProducerConfig, ctx context.Context, consum
 			}
 		}()
 	}
-	waitGroup.Wait()
+	//waitGroup.Wait()
+}
+
+func closeConsumerChannel(consumerChannels []chan Message) {
+	// 关闭所有通道
+	for idx := range consumerChannels {
+		close(consumerChannels[idx])
+	}
 }
 
 // calculateIndex 计算索引
