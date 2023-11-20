@@ -12,6 +12,7 @@ func (t TestRunner) Start(ctx context.Context, config interface{}, ch chan<- Mes
 	testConfig, ok := config.(*TestConfig)
 	if !ok {
 		panic("invalid config")
+		return
 	}
 	for i := 0; i < 100; i++ {
 		ok = true
