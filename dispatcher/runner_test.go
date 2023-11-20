@@ -9,7 +9,7 @@ type TestRunner struct {
 }
 
 func (t TestRunner) Start(ctx context.Context, config interface{}, ch chan<- Message) {
-	testConfig, ok := config.(*TestConfig)
+	testConfig, ok := config.(TestConfig)
 	if !ok {
 		panic("invalid config")
 		return
