@@ -51,7 +51,6 @@ func TestDispatcher_Start(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
-	// TODO
 
 }
 
