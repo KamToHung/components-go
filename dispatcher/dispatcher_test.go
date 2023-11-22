@@ -76,7 +76,7 @@ func TestDispatcher_Start(t *testing.T) {
 		OptProducerConcurrency(10),
 		OptProducerBufferSize(1024),
 	)
-	d.Start(ctx, &TestConfig{name: "test"})
+	d.Start(ctx, TestConfig{name: "test"}, TestConfig{name: "test2"})
 }
 
 func TestNew(t *testing.T) {

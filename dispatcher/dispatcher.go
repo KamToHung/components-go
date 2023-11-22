@@ -75,7 +75,7 @@ func (d *Dispatcher) Start(ctx context.Context, configs ...interface{}) {
 	pWaitGroup := sync.WaitGroup{}
 	cWaitGroup := sync.WaitGroup{}
 	consumerProcess(&cWaitGroup, &d.consumerConfig, consumerChannels)
-	producerProcess(&cWaitGroup, &d.producerConfig, ctx, consumerChannels, configs)
+	producerProcess(&cWaitGroup, &d.producerConfig, consumerChannels, ctx, configs)
 	pWaitGroup.Wait()
 	closeConsumerChannel(consumerChannels)
 	cWaitGroup.Wait()
@@ -117,7 +117,7 @@ func consumerProcess(waitGroup *sync.WaitGroup, consumerConfig *ConsumerConfig, 
 // @param ctx 上下文
 // @param consumerChannels 消费者通道
 // @param configs 配置信息
-func producerProcess(waitGroup *sync.WaitGroup, producerConfig *ProducerConfig, ctx context.Context, consumerChannels []chan Message, configs ...interface{}) {
+func producerProcess(waitGroup *sync.WaitGroup, producerConfig *ProducerConfig, consumerChannels []chan Message, ctx context.Context, configs ...interface{}) {
 	if producerConfig.producer == nil {
 		panic("producer is not set")
 	}
