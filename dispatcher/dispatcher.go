@@ -117,7 +117,7 @@ func consumerProcess(waitGroup *sync.WaitGroup, consumerConfig *ConsumerConfig, 
 // @param ctx 上下文
 // @param consumerChannels 消费者通道
 // @param configs 配置信息
-func producerProcess(waitGroup *sync.WaitGroup, producerConfig *ProducerConfig, consumerChannels []chan Message, ctx context.Context, configs ...interface{}) {
+func producerProcess(waitGroup *sync.WaitGroup, producerConfig *ProducerConfig, consumerChannels []chan Message, ctx context.Context, configs []interface{}) {
 	if producerConfig.producer == nil {
 		panic("producer is not set")
 	}
@@ -140,10 +140,10 @@ func producerProcess(waitGroup *sync.WaitGroup, producerConfig *ProducerConfig, 
 	for i := 0; i < concurrency; i++ {
 		go func() {
 			defer waitGroup.Done()
-			for config := range configChannels {
+			for channel := range configChannels {
 				ch := make(chan Message, bufferSize)
 				go func() {
-					producerConfig.producer().Start(ctx, config, ch)
+					producerConfig.producer().Start(ctx, channel, ch)
 					close(ch)
 				}()
 
