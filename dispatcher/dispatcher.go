@@ -71,12 +71,12 @@ func (d *Dispatcher) GetConsumeMessageCount() uint64 {
 // @param configs 配置信息
 func (d *Dispatcher) Start(ctx context.Context, configs ...interface{}) {
 	// channels
-	consumerChannels := make([]chan Message, d.consumerConfig.bufferSize)
+	consumerChannels := make([]chan Message, d.consumerConfig.concurrency)
 	pWaitGroup := sync.WaitGroup{}
 	cWaitGroup := sync.WaitGroup{}
 	consumerProcess(&cWaitGroup, &d.consumerConfig, consumerChannels)
-	producerProcess(&cWaitGroup, &d.producerConfig, consumerChannels, ctx, configs)
-	pWaitGroup.Wait()
+	producerProcess(&pWaitGroup, &d.producerConfig, d.consumerConfig.concurrency, consumerChannels, ctx, configs)
+	//pWaitGroup.Wait()
 	closeConsumerChannel(consumerChannels)
 	cWaitGroup.Wait()
 }
@@ -117,7 +117,7 @@ func consumerProcess(waitGroup *sync.WaitGroup, consumerConfig *ConsumerConfig, 
 // @param ctx 上下文
 // @param consumerChannels 消费者通道
 // @param configs 配置信息
-func producerProcess(waitGroup *sync.WaitGroup, producerConfig *ProducerConfig, consumerChannels []chan Message, ctx context.Context, configs []interface{}) {
+func producerProcess(waitGroup *sync.WaitGroup, producerConfig *ProducerConfig, cConcurrency int, consumerChannels []chan Message, ctx context.Context, configs []interface{}) {
 	if producerConfig.producer == nil {
 		panic("producer is not set")
 	}
@@ -152,10 +152,10 @@ func producerProcess(waitGroup *sync.WaitGroup, producerConfig *ProducerConfig, 
 					index := 0
 					if open {
 						// 根据key发送到同一个consumer
-						index = calculateIndex(key, concurrency)
+						index = calculateIndex(key, cConcurrency)
 					} else {
 						// 随机发送到一个consumer
-						index = rand.Intn(concurrency)
+						index = rand.Intn(cConcurrency)
 					}
 					// producer count
 					atomic.AddUint64(&producerConfig.messageCount, 1)
@@ -165,7 +165,7 @@ func producerProcess(waitGroup *sync.WaitGroup, producerConfig *ProducerConfig, 
 			}
 		}()
 	}
-	//waitGroup.Wait()
+	waitGroup.Wait()
 }
 
 func closeConsumerChannel(consumerChannels []chan Message) {
