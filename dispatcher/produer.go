@@ -7,6 +7,6 @@ type Producer interface {
 	// 启动producer
 	// @param ctx 上下文
 	// @param config 配置信息
-	// @param ch chan
+	// @param ch chan channel
 	Start(ctx context.Context, config interface{}, ch chan<- Message)
 }
